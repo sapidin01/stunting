@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIKD - Terpadu Pencegahan Stunting</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Highcharts Maps -->
+    <script src="https://code.highcharts.com/maps/highmaps.js"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 overflow-hidden">
+
+    <!-- LAYOUT UTAMA: SIDEBAR KIRI & KONTEN KANAN -->
+    <div class="flex h-screen w-full">
+        
+        <!-- SIDEBAR MENU (KIRI) -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
+            <div class="h-20 flex items-center px-6 border-b border-slate-100">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                    <span class="material-symbols-outlined text-white text-sm">public</span>
+                </div>
+                <span class="font-black text-slate-800 text-lg tracking-tight">SIKD Stunting</span>
+            </div>
+            
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <button onclick="switchTab('modul-1')" id="btn-modul-1" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">dashboard</span> Executive Panel
+                </button>
+                <button onclick="switchTab('modul-2')" id="btn-modul-2" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">troubleshoot</span> Deteksi Anomali
+                </button>
+                <button onclick="switchTab('modul-3')" id="btn-modul-3" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg bg-blue-50 text-blue-700 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">map</span> Segmentasi Wilayah
+                </button>
+                <button onclick="switchTab('modul-4')" id="btn-modul-4" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">account_tree</span> Analisis Kausal
+                </button>
+            </nav>
+        </aside>
+
+        <!-- AREA KONTEN UTAMA (KANAN) -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden">
+            
+            <!-- HEADER & DROPDOWN FILTER -->
+            <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
+                <h1 id="header-title" class="text-2xl font-bold text-slate-800">Segmentasi Wilayah</h1>
+                
+                <div class="relative inline-block min-w-[240px]">
+                    <select id="filter-daerah" class="block w-full appearance-none bg-white border border-slate-300 text-slate-700 py-2.5 pl-10 pr-10 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-sm cursor-pointer hover:bg-slate-50 transition-colors">
+                        <option value="all">Semua Daerah (Nasional)</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                        <span class="material-symbols-outlined text-[18px]">location_on</span>
+                    </div>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500">
+                        <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- BUNGKUSAN MODUL (SCROLLABLE) -->
+            <div class="flex-1 overflow-y-auto p-8">
+                
+                <!-- MODUL 1: EXECUTIVE PANEL -->
+                <div id="modul-1" class="hidden">
+                    <div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm text-center">
+                        <span class="material-symbols-outlined text-6xl text-slate-300 mb-4">construction</span>
+                        <h2 class="text-xl font-bold text-slate-600">Executive Panel</h2>
+                        <p class="text-slate-400">Modul ini sedang dalam tahap pengembangan.</p>
+                    </div>
+                </div>
+
+                <!-- MODUL 2: DETEKSI ANOMALI -->
+                <div id="modul-2" class="hidden">
+                    <div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm text-center">
+                        <span class="material-symbols-outlined text-6xl text-slate-300 mb-4">construction</span>
+                        <h2 class="text-xl font-bold text-slate-600">Deteksi Anomali</h2>
+                        <p class="text-slate-400">Modul ini sedang dalam tahap pengembangan.</p>
+                    </div>
+                </div>
+
+                <!-- MODUL 3: SEGMENTASI WILAYAH (AKTIF BAWAAN) -->
+                <div id="modul-3" class="block space-y-6">
+                    
+                    <!-- KARTU KPI ATAS -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-red-50 text-red-500 flex items-center justify-center"><span class="material-symbols-outlined">vaccines</span></div>
+                            <div>
+                                <div id="mod3-kpi-prevalensi" class="text-2xl font-black text-slate-800">6.0%</div>
+                                <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Prevalensi Stunting</div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center"><span class="material-symbols-outlined">face</span></div>
+                            <div>
+                                <div id="mod3-kpi-anak" class="text-2xl font-black text-slate-800">0</div>
+                                <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Total Anak Stunting</div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center"><span class="material-symbols-outlined">payments</span></div>
+                            <div>
+                                <div id="mod3-kpi-anggaran" class="text-2xl font-black text-slate-800">Rp 0</div>
+                                <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Total Anggaran</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AREA PETA DAN INFO KANAN -->
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        
+                        <!-- PETA -->
+                        <div class="w-full lg:w-2/3 bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col relative">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 id="mod3-map-title" class="font-bold text-slate-800 text-lg">Distribusi Kerentanan Nasional</h3>
+                                <button class="text-slate-400 hover:text-slate-600 transition-colors"><span class="material-symbols-outlined">fullscreen</span></button>
+                            </div>
+                            <div id="map" class="w-full flex-grow min-h-[450px]"></div>
+                        </div>
+
+                        <!-- HIGHLIGHT -->
+                        <div class="w-full lg:w-1/3 flex flex-col gap-6">
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex-grow">
+                                <h3 class="font-bold text-slate-800 text-sm mb-1">Highlight Wilayah</h3>
+                                <p class="text-[10px] text-slate-500 mb-4">Wilayah dengan urgensi tinggi</p>
+                                <div class="border-b border-slate-100 flex justify-between pb-2 mb-3">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Daerah Administratif</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-4">
+                                    <span id="mod3-alokasi-kec1" class="text-sm font-bold text-slate-700">Wilayah Prioritas A</span>
+                                    <div class="text-right">
+                                        <div id="mod3-alokasi-rp1" class="text-xs font-black text-slate-800">Rp 0 Miliar</div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center mt-6">
+                                    <span id="mod3-kasus-kec" class="text-sm font-bold text-slate-700">Wilayah Prioritas B</span>
+                                    <div class="text-right">
+                                        <div class="text-lg font-black text-red-600"><span id="mod3-kasus-anak">0</span> Anak</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODUL 4: ANALISIS KAUSAL -->
+                <div id="modul-4" class="hidden">
+                    <div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm text-center">
+                        <span class="material-symbols-outlined text-6xl text-slate-300 mb-4">construction</span>
+                        <h2 class="text-xl font-bold text-slate-600">Analisis Kausal</h2>
+                        <p class="text-slate-400">Modul ini sedang dalam tahap pengembangan.</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    
+    <!-- Panggil File Logika Javascript -->
+    <script src="/js/modul3_segmentasi.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if(window.initModul3) window.initModul3();
+        });
+    </script>
+</body>
+</html>
