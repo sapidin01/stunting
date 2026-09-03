@@ -1,13 +1,6 @@
 window.geoProv = null;
 window.geoKab = null;
-
-// Mock Data
-window.dbData = [
-    { nama_provinsi: "JAWA TIMUR", nama_kabupaten: "KOTA SURABAYA", anggaran_total: 800000000000, total_stunting: 12000 },
-    { nama_provinsi: "JAWA TENGAH", nama_kabupaten: "KOTA SEMARANG", anggaran_total: 600000000000, total_stunting: 9500 },
-    { nama_provinsi: "JAWA BARAT", nama_kabupaten: "KOTA BANDUNG", anggaran_total: 950000000000, total_stunting: 15000 },
-    { nama_provinsi: "PAPUA TENGAH", nama_kabupaten: "KABUPATEN NABIRE", anggaran_total: 200000000000, total_stunting: 4500 }
-];
+window.dbData = []; // Menampung data asli dari PostgreSQL
 
 window.cleanNameStrict = function(str) {
     if (!str) return "";
@@ -20,20 +13,23 @@ window.cleanNameStrict = function(str) {
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        const [resProv, resKab] = await Promise.all([
+        const [resProv, resKab, resDB] = await Promise.all([
             fetch('https://raw.githubusercontent.com/denyherianto/indonesia-geojson-topojson-maps-with-38-provinces/main/GeoJSON/indonesia-38-provinces.geojson'),
-            fetch('/maps/indonesia-regencies.json')
+            fetch('/maps/indonesia-regencies.json'),
+            fetch('http://192.168.100.64:5000/api/stunting-data') // URL API Live
         ]);
         
         window.geoProv = await resProv.json();
         window.geoKab = await resKab.json();
+        window.dbData = await resDB.json();
 
         initDropdown();
         applyFilter();
 
         document.getElementById('loading-screen').classList.add('hidden');
     } catch(e) {
-        console.error("Gagal memuat peta:", e);
+        console.error("Gagal memuat data:", e);
+        document.getElementById('loading-screen').innerHTML = `<div class="text-red-500 font-bold bg-white p-4 rounded shadow">Gagal terhubung ke Database API di 192.168.100.64</div>`;
     }
 });
 
@@ -49,7 +45,6 @@ function initDropdown() {
     document.getElementById('filter-daerah').innerHTML = html;
 }
 
-// Memicu Semua Modul saat Dropdown Berubah
 window.applyFilter = function() {
     let filterVal = document.getElementById('filter-daerah').value;
     if (window.renderModul1) window.renderModul1(filterVal);

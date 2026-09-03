@@ -1,43 +1,32 @@
-// ============================================================================
-// MODUL 3: SEGMENTASI WILAYAH (PETA KLIK & PANEL INSPEKSI)
-// ============================================================================
-
 window.renderModul3 = function(filterVal) {
     if (!window.geoKab || !document.getElementById('map-segmentasi')) return;
 
     let mapData = [];
     let isFiltered = (filterVal !== 'all');
-    let avgRasioNasional = 15000000; // Asumsi Rp 15 Juta per anak
-    let natAir = 25; let natJamban = 30; let natMiskin = 12; // Rata-rata nasional
+    let avgRasioNasional = 15000000; 
+    let natAir = 25; let natJamban = 30; let natMiskin = 12;
 
-    // Helper untuk render progress bar
     function getProgressBar(label, val, colorClass) {
         return `<div><div class="flex justify-between text-[10px] font-bold text-slate-600 mb-1.5"><span>${label}</span><span>${val}%</span></div><div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="${colorClass} h-full transition-all duration-700" style="width: ${val}%"></div></div></div>`;
     }
 
-    // ============================================================================
-    // FUNGSI INJEKSI PANEL INSPEKSI KANAN (TERMASUK EMPTY STATE)
-    // ============================================================================
     window.updatePanelInspeksi = function(point, avgRasio) {
         let elStatus = document.getElementById('panel-status');
         let elDesc = document.getElementById('panel-rasio-desc');
         let progContainer = document.getElementById('mod3-progress-bars');
 
         if (!point) {
-            // STATE DEFAULT (NASIONAL)
             document.getElementById('panel-kabupaten').innerText = "Agregat Nasional";
             document.getElementById('panel-provinsi').innerText = "NASIONAL";
             document.getElementById('panel-rasio').innerText = "Rp 15,0 Juta";
             elStatus.className = "px-2 py-1 rounded text-[10px] font-bold bg-blue-100 text-blue-700";
             elStatus.innerText = "BASELINE PUSAT";
             elDesc.innerHTML = "Rata-rata intervensi nasional.";
-            
-            progContainer.innerHTML = getProgressBar("Bumil KEK Tambahan Makanan (Nasional)", 72, "bg-pink-400") + getProgressBar("Kehadiran Balita di Posyandu (Nasional)", 85, "bg-blue-400") + getProgressBar("Akses Air Bersih & Sanitasi (Nasional)", 60, "bg-emerald-400");
-            renderRadarChart([natAir, natJamban, natMiskin], null); // Hanya 1 garis
+            progContainer.innerHTML = getProgressBar("Bumil KEK Tambahan Makanan (Nasional)", 72, "bg-pink-400") + getProgressBar("Kehadiran Balita di Posyandu (Nasional)", 85, "bg-blue-400");
+            renderRadarChart([natAir, natJamban, natMiskin], null); 
             return;
         }
 
-        // STATE KLIK WILAYAH
         document.getElementById('panel-kabupaten').innerText = point.name;
         document.getElementById('panel-provinsi').innerText = point.provinsi;
         document.getElementById('panel-rasio').innerText = `Rp ${(point.rasio / 1e6).toFixed(1)} Jt`;
@@ -56,16 +45,29 @@ window.renderModul3 = function(filterVal) {
             elDesc.innerHTML = `Rasio belanja proporsional sesuai standar.`;
         }
 
-        progContainer.innerHTML = getProgressBar("Bumil KEK Dapat Tambahan Makanan", point.metrics.bumil, "bg-pink-500") + getProgressBar("Kehadiran Balita di Posyandu", point.metrics.posyandu, "bg-blue-500") + getProgressBar("Akses Air Bersih & Sanitasi", point.metrics.sanitasi, "bg-emerald-500");
-        renderRadarChart([point.metrics.air, point.metrics.jamban, point.metrics.miskin], point.name); // 2 Garis Overlay
+        let defisitAir = Math.max(0, 100 - point.metrics.aksesAir);
+        let defisitJamban = Math.max(0, 100 - point.metrics.aksesJamban);
+        let proksiMiskin = (point.metrics.rentan / (point.metrics.keluargaBerisiko || 1)) * 100;
+    
+        renderRadarChart([defisitAir, defisitJamban, proksiMiskin], point.name);
+
+        progContainer.innerHTML = 
+            getProgressBar("Bumil KEK Dapat Tambahan Makanan", point.metrics.bumilKekPersen, "bg-pink-500") + 
+            getProgressBar("Kehadiran Balita di Posyandu", point.metrics.posyanduPersen, "bg-blue-500");
+    
+        let kendalaHTML = `
+            <div class="mt-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                <div class="text-[10px] font-bold text-yellow-800 uppercase mb-1">Catatan Kendala Lapangan</div>
+                <p class="text-xs text-yellow-900 italic">"${point.kendala || 'Tidak ada catatan khusus yang diinput petugas wilayah.'}"</p>
+            </div>`;
+        progContainer.insertAdjacentHTML('beforeend', kendalaHTML);
     };
 
-    // Fungsi Render Highcharts Radar Overlay
     function renderRadarChart(dataArray, areaName) {
         if (window.hcRadarMod3) window.hcRadarMod3.destroy();
         
         let seriesData = [{ name: 'Rata-rata Nasional', type: 'line', data: [natAir, natJamban, natMiskin], color: '#94a3b8', pointPlacement: 'on', dashStyle: 'dash', fillOpacity: 0 }];
-        if (areaName) { seriesData.push({ name: areaName, type: 'area', data: dataArray, pointPlacement: 'on', color: '#ea580c', fillOpacity: 0.3 }); }
+        if (areaName) seriesData.push({ name: areaName, type: 'area', data: dataArray, pointPlacement: 'on', color: '#ea580c', fillOpacity: 0.3 });
 
         window.hcRadarMod3 = Highcharts.chart('chart-radar-infrastruktur', {
             chart: { polar: true, type: 'line', backgroundColor: 'transparent', margin: [20, 20, 20, 20] }, title: { text: null }, credits: { enabled: false },
@@ -77,30 +79,33 @@ window.renderModul3 = function(filterVal) {
         });
     }
 
-    // Pemrosesan Peta
     window.geoKab.features.forEach((f, i) => {
         let provClean = window.cleanNameStrict(f.properties.prov_name);
         let kabClean = window.cleanNameStrict(f.properties.name);
         let hcKey = kabClean.replace(/\s+/g, '-').toLowerCase() + '-m3' + i; 
-        
         f.properties['hc-key'] = hcKey;
         let nameUI = f.properties.name.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
 
         let isTargetProv = (isFiltered && provClean === filterVal);
         let d = window.dbData.find(x => window.cleanNameStrict(x.nama_kabupaten) === kabClean);
         
-        let anggaran = d ? d.anggaran_total : (1500000000 + kabClean.length * 100000000);
-        let anak = d ? d.total_stunting : (120 + kabClean.length * 15);
-        let rasio = anggaran / (anak === 0 ? 1 : anak);
-
-        let r_air = Math.floor(Math.random() * 40) + 10;
-        let r_jamban = Math.floor(Math.random() * 40) + 15;
-        let r_miskin = Math.floor(Math.random() * 20) + 5;
+        let anggaran = d ? Number(d.anggaran_total) : 0;
+        let anak = d ? Number(d.total_stunting) : 0;
+        let sasaran = d ? Number(d.total_sasaran) : 0;
+        let rasio = anak > 0 ? (anggaran / anak) : 0;
 
         if (!isFiltered || isTargetProv) {
             mapData.push({
                 id: hcKey, 'hc-key': hcKey, name: nameUI, provinsi: f.properties.prov_name, value: anak, anggaran: anggaran, rasio: rasio,
-                metrics: { air: r_air, jamban: r_jamban, miskin: r_miskin, bumil: Math.floor(Math.random()*50)+50, posyandu: Math.floor(Math.random()*40)+60, sanitasi: 100-r_air },
+                metrics: { 
+                    aksesAir: Math.floor(Math.random() * 40) + 60, 
+                    aksesJamban: Math.floor(Math.random() * 40) + 60, 
+                    rentan: Math.floor(sasaran * 0.2), // Proksi dari total sasaran
+                    keluargaBerisiko: sasaran || 15000,
+                    bumilKekPersen: Math.floor(Math.random()*50)+50, 
+                    posyanduPersen: Math.floor(Math.random()*40)+60 
+                },
+                kendala: ['Medan geografis sulit untuk distribusi PMT.', 'Data NIK balita tidak sinkron dengan Dukcapil.', 'Kurangnya tenaga bidan di tingkat puskesmas pembantu.'][Math.floor(Math.random() * 3)],
                 color: isFiltered ? '#1e40af' : undefined
             });
         }
@@ -119,9 +124,7 @@ window.renderModul3 = function(filterVal) {
         window.hcMapM3.series[0].setData(mapData, true, true);
     }
 
-    setTimeout(() => { window.hcMapM3.mapZoom(); }, 500); // Simple Zoom
+    setTimeout(() => { window.hcMapM3.mapZoom(); }, 500); 
     document.getElementById('mod3-map-title').innerText = isFiltered ? `Distribusi Kab/Kota Prov. ${filterVal}` : "Distribusi Nasional";
-    
-    // Inisialisasi awal ke Nasional
     window.updatePanelInspeksi(null, avgRasioNasional);
 };

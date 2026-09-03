@@ -10,7 +10,7 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
-const PORT = 3000;
+const PORT = 3003;
 app.listen(PORT, () => {
     console.log(`🚀 SIKD Stunting berjalan di http://localhost:${PORT}`);
 });
