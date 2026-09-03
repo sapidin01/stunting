@@ -6,7 +6,14 @@ window.renderModul1 = function(filterVal) {
     let isFiltered = (filterVal !== 'all');
     let zoomTargetKey = null;
 
-    let totalPagu = 0; let totalAnak = 0;
+    let totalPagu = 0; 
+    let totalAnak = 0;
+    
+    // 1. Variabel penampung untuk Donut Chart Postur Pembiayaan
+    let postur = { danaDesa: 0, dakFisik: 0, dakNonFisik: 0, apbd: 0 };
+    
+    // Helper format uang dipindah ke atas agar bisa digunakan oleh tooltip chart
+    let formatUang = (num) => num >= 1e12 ? `Rp ${(num/1e12).toFixed(2)} T` : `Rp ${(num/1e9).toFixed(2)} M`;
 
     window.geoProv.features.forEach((f) => {
         let geoClean = window.cleanNameStrict(f.properties.PROVINSI || f.properties.name);
@@ -27,6 +34,13 @@ window.renderModul1 = function(filterVal) {
         if (!isFiltered || isTarget) {
             totalPagu += anggaran;
             totalAnak += anak;
+            
+            // 2. Agregasi rincian pembiayaan dari API
+            postur.danaDesa += dList.reduce((sum, c) => sum + Number(c.pagu_dana_desa || 0), 0);
+            postur.dakFisik += dList.reduce((sum, c) => sum + Number(c.pagu_dak_fisik || 0), 0);
+            postur.dakNonFisik += dList.reduce((sum, c) => sum + Number(c.pagu_dak_nonfisik || 0), 0);
+            postur.apbd += dList.reduce((sum, c) => sum + Number(c.pagu_apbd || 0), 0);
+
             mapData.push({ id: hcKey, 'hc-key': hcKey, name: f.properties.name, value: anak, anggaran: anggaran });
         }
     });
@@ -46,9 +60,9 @@ window.renderModul1 = function(filterVal) {
         tooltip: {
             useHTML: true, backgroundColor: '#ffffff', borderRadius: 8, padding: 12,
             formatter: function () {
-                let uang = this.point.anggaran >= 1e12 ? (this.point.anggaran/1e12).toFixed(2)+" T" : (this.point.anggaran/1e9).toFixed(2)+" M";
+                let uang = formatUang(this.point.anggaran);
                 return `<div style="font-size:11px; min-width:140px;">
-                    <b>Prov. ${this.point.name}</b><br/>Alokasi: Rp ${uang}<br/>Kasus: <b style="color:red">${this.point.value.toLocaleString()}</b>
+                    <b>Prov. ${this.point.name}</b><br/>Alokasi: ${uang}<br/>Kasus: <b style="color:red">${this.point.value.toLocaleString()}</b>
                 </div>`;
             }
         },
@@ -63,9 +77,24 @@ window.renderModul1 = function(filterVal) {
         } else { window.hcMapM1.mapZoom(); }
     }, 500);
 
-    let chartSumberDana = document.getElementById('chart-sumber-dana');
-    if (chartSumberDana) {
-        chartSumberDana.innerHTML = `<div class="flex h-full items-center justify-center text-xs text-slate-400 font-bold text-center p-4">Breakdown DAK/Dana Desa/APBD belum tersedia di dataset saat ini.</div>`;
+    // 3. Render Highcharts Donut Chart untuk Postur Pembiayaan
+    if (document.getElementById('chart-sumber-dana')) {
+        Highcharts.chart('chart-sumber-dana', {
+            chart: { type: 'pie', backgroundColor: 'transparent' },
+            title: { text: null }, credits: { enabled: false },
+            tooltip: { pointFormat: '<b>{point.percentage:.1f}%</b><br/>{point.formatted}' },
+            plotOptions: { pie: { innerSize: '60%', dataLabels: { enabled: false }, showInLegend: true } },
+            legend: { layout: 'horizontal', align: 'center', verticalAlign: 'bottom', itemStyle: { fontSize: '10px' } },
+            series: [{
+                name: 'Porsi Pembiayaan',
+                data: [
+                    { name: 'Dana Desa (APBDes)', y: postur.danaDesa, formatted: formatUang(postur.danaDesa), color: '#10b981' },
+                    { name: 'DAK Fisik', y: postur.dakFisik, formatted: formatUang(postur.dakFisik), color: '#3b82f6' },
+                    { name: 'DAK Non-Fisik', y: postur.dakNonFisik, formatted: formatUang(postur.dakNonFisik), color: '#8b5cf6' },
+                    { name: 'APBD Kabupaten', y: postur.apbd, formatted: formatUang(postur.apbd), color: '#f59e0b' }
+                ]
+            }]
+        });
     }
 
     Highcharts.chart('chart-tren-korelasi', {
@@ -83,8 +112,6 @@ window.renderModul1 = function(filterVal) {
             { name: 'Kasus Aktif', type: 'spline', yAxis: 1, color: '#ef4444', lineWidth: 3, data: [171500, 165000, 160200] }
         ]
     });
-
-    let formatUang = (num) => num >= 1e12 ? `Rp ${(num/1e12).toFixed(2)} T` : `Rp ${(num/1e9).toFixed(2)} M`;
     
     document.getElementById('mod1-kpi-pagu').innerText = formatUang(totalPagu);
     let elRealisasi = document.getElementById('mod1-kpi-realisasi');
