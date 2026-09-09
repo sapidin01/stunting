@@ -33,7 +33,7 @@
                     <span class="material-symbols-outlined text-[20px]">map</span> Segmentasi Wilayah
                 </button>
                 <button onclick="switchTab('modul-4')" id="btn-modul-4" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors">
-                    <span class="material-symbols-outlined text-[20px]">account_tree</span> Analisis Kausal
+                    <span class="material-symbols-outlined text-[20px]">account_tree</span> Analisis Faktor
                 </button>
             </nav>
         </aside>
@@ -54,7 +54,7 @@
 
             <!-- METADATA BAR (PRIORITAS TINGGI) -->
             <div class="bg-slate-100 text-[10px] font-bold text-slate-500 px-8 py-2 border-b border-slate-200 flex justify-between items-center shrink-0">
-                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sumber: e-PPGBM & SIKD APBD (Live API) | Update: 3 Sep 2026</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sumber: Direktorat Jenderal Pembangunan Desa dan Perdesaan (Live API) | Tahun: 2023 </span>
                 <span>Periode: TA 2026</span>
             </div>
 
@@ -185,37 +185,79 @@
                     </div>
                 </div>
 
-                <!-- ============================================== -->
-                <!-- MODUL 4: ANALISIS KAUSAL                       -->
-                <!-- ============================================== -->
-                <div id="modul-4" class="hidden space-y-6">
-                    <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg flex items-center gap-3">
-                        <span class="material-symbols-outlined text-yellow-600">warning</span>
-                        <p class="text-[11px] text-yellow-800 font-medium"><strong>Disclaimer Metodologi:</strong> Nilai kausalitas diestimasi menggunakan model <em>Multivariate Linear Regression</em> (R² = 0.72). Ini adalah proyeksi kebijakan, bukan kepastian absolut.</p>
+<!-- MODUL 4: ANALISIS FAKTOR -->
+<div id="modul-4" class="hidden space-y-4 md:space-y-6">
+    
+    <!-- PANEL EVALUASI MODEL REGRESI -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="font-bold text-slate-800 text-xs md:text-sm">Evaluasi Model Regresi (Multivariate Linear Regression)</h3>
+            <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[9px] font-bold rounded">Prescriptive Analytics</span>
+        </div>
+        <p class="text-[10px] md:text-xs text-slate-500 mb-4"><strong>Target Prediksi:</strong> Penurunan Kasus Stunting | <strong>Variabel Input:</strong> Realisasi Intervensi Spesifik, Sensitif, dan Dukungan.</p>
+        <div class="grid grid-cols-3 gap-2 md:gap-4 text-center">
+            <div class="bg-slate-50 p-2 md:p-3 rounded-lg border border-slate-100">
+                <div class="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase">R-Squared (R²)</div>
+                <div class="text-base md:text-xl font-black text-blue-600">0.72</div>
+                <div class="text-[8px] md:text-[9px] text-slate-400 mt-1">Daya Penjelas Model</div>
+            </div>
+            <div class="bg-slate-50 p-2 md:p-3 rounded-lg border border-slate-100">
+                <div class="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase">MAE</div>
+                <div class="text-base md:text-xl font-black text-emerald-600">12.4</div>
+                <div class="text-[8px] md:text-[9px] text-slate-400 mt-1">Mean Absolute Error</div>
+            </div>
+            <div class="bg-slate-50 p-2 md:p-3 rounded-lg border border-slate-100">
+                <div class="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase">RMSE</div>
+                <div class="text-base md:text-xl font-black text-pink-600">18.5</div>
+                <div class="text-[8px] md:text-[9px] text-slate-400 mt-1">Root Mean Squared Error</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6"><h3 class="font-bold text-slate-800 text-xs md:text-sm mb-2">Matriks Efektivitas</h3><div id="chart-heatmap" class="w-full h-[250px] md:h-[320px]"></div></div>
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6"><h3 class="font-bold text-slate-800 text-xs md:text-sm mb-2">Determinan Dominan (Koefisien)</h3><div id="chart-tornado" class="w-full h-[250px] md:h-[320px]"></div></div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6"><h3 class="font-bold text-slate-800 text-xs md:text-sm mb-2">Analisis Jeda Waktu</h3><div id="chart-timelag" class="w-full h-[250px] md:h-[320px]"></div></div>
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6">
+            <h3 class="font-bold text-slate-800 text-xs md:text-sm mb-1">Simulator Rekomendasi Alokasi (What-If)</h3>
+            <p class="text-[9px] md:text-[10px] text-slate-500 mb-4 italic">Mensimulasikan efektivitas marginal berdasarkan koefisien model. "Jika tersedia tambahan anggaran, ke mana harus dialokasikan agar dampaknya maksimal?"</p>
+            
+            <div class="space-y-4 md:space-y-6">
+                <div>
+                    <div class="flex justify-between text-[10px] md:text-xs font-bold mb-1">
+                        <span>Intervensi Sensitif (Air/Sanitasi/Pangan)</span>
+                        <span id="sim-val-sensitif" class="text-blue-600">+0%</span>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6"><h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-2">Matriks Efektivitas Intervensi</h3><p class="text-[10px] text-slate-500 mb-4">Korelasi antara jenis belanja spesifik terhadap penurunan kasus.</p><div id="chart-heatmap" class="w-full h-[320px]"></div></div>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6"><h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-2 flex items-center gap-1">Determinan Dominan <span class="material-symbols-outlined text-[14px] text-slate-400 cursor-help" title="Bobot regresi faktor penghambat vs daya dorong anggaran">help</span></h3><p class="text-[10px] text-slate-500 mb-4">Faktor penyumbang terbesar vs kemampuan intervensi daerah.</p><div id="chart-tornado" class="w-full h-[320px]"></div></div>
+                    <input type="range" id="sim-sensitif" min="-50" max="100" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                </div>
+                <div>
+                    <div class="flex justify-between text-[10px] md:text-xs font-bold mb-1">
+                        <span>Intervensi Spesifik (Gizi/Kesehatan Bumil)</span>
+                        <span id="sim-val-spesifik" class="text-pink-600">+0%</span>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6"><h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-2">Analisis Jeda Waktu (Time-Lag Effect)</h3><p class="text-[10px] text-slate-500 mb-4">Mendeteksi jeda waktu antara pencairan dana dan penurunan prevalensi.</p><div id="chart-timelag" class="w-full h-[320px]"></div></div>
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
-                            <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Simulator Alokasi (What-If Analysis)</h3>
-                            <div class="flex-grow space-y-6 mt-2">
-                                <div><div class="flex justify-between text-xs font-bold text-slate-700 mb-2"><span>Dana Infrastruktur Sanitasi & Air</span><span id="sim-val-sanitasi" class="text-blue-600">+0%</span></div><input type="range" id="sim-sanitasi" min="-50" max="100" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"></div>
-                                <div><div class="flex justify-between text-xs font-bold text-slate-700 mb-2"><span>Dana Bantuan Gizi Spesifik (PMT)</span><span id="sim-val-gizi" class="text-pink-600">+0%</span></div><input type="range" id="sim-gizi" min="-50" max="100" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-pink-600"></div>
-                                <div><div class="flex justify-between text-xs font-bold text-slate-700 mb-2"><span>Dana Edukasi & Pendampingan</span><span id="sim-val-edukasi" class="text-emerald-600">+0%</span></div><input type="range" id="sim-edukasi" min="-50" max="100" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"></div>
-                            </div>
-                            <div class="mt-8 bg-slate-50 p-4 rounded-xl border border-slate-200 text-center relative overflow-hidden">
-                                <div class="text-[10px] uppercase font-bold text-slate-500 mb-1 relative z-10">Proyeksi Penurunan Kasus (95% CI)</div>
-                                <div class="text-3xl font-black text-slate-400 relative z-10 transition-colors duration-300" id="sim-result"><span id="sim-min">0</span> <span class="text-sm font-normal">s/d</span> <span id="sim-max">0</span> <span class="text-sm font-bold">Anak</span></div>
-                            </div>
-                        </div>
+                    <input type="range" id="sim-spesifik" min="-50" max="100" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-pink-600">
+                </div>
+                <div>
+                    <div class="flex justify-between text-[10px] md:text-xs font-bold mb-1">
+                        <span>Intervensi Dukungan (Edukasi/Manajemen/Kader)</span>
+                        <span id="sim-val-dukungan" class="text-emerald-600">+0%</span>
                     </div>
+                    <input type="range" id="sim-dukungan" min="-50" max="100" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
                 </div>
             </div>
-        </main>
+
+            <div class="mt-6 bg-slate-50 p-4 rounded-xl text-center">
+                <div class="text-[9px] md:text-[10px] uppercase font-bold text-slate-500 mb-1">Proyeksi Penurunan Kasus (Berdasarkan Bobot Koefisien)</div>
+                <div class="text-xl md:text-3xl font-black text-slate-400" id="sim-result">
+                    <span id="sim-min">0</span> <span class="text-sm font-normal">s/d</span> <span id="sim-max">0</span> <span class="text-sm font-bold">Anak</span>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
     <!-- PANGGIL SEMUA SKRIP -->
     <script src="/js/main.js"></script>

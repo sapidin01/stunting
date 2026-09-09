@@ -132,5 +132,5 @@ window.renderModul1 = function(filterVal) {
         </tr>`).join('');
 
     let insightRegion = topMismatch.length > 0 ? topMismatch[0].name : "Nasional";
-    document.getElementById('mod1-auto-insight').innerHTML = `Hingga TA 2023, pengalokasian anggaran desa terpantau aktif, namun laju penurunan kasus masih melambat. Perhatian khusus dibutuhkan di <strong>${insightRegion}</strong> yang menduduki peringkat teratas beban kasus dengan rasio intervensi per anak yang masih harus dioptimalkan.`;
+document.getElementById('mod1-auto-insight').innerHTML = `Stunting adalah program prioritas nasional. Tantangan utama saat ini bukan sekadar penyerapan anggaran, melainkan memastikan <strong>komposisi belanja dialokasikan pada intervensi yang paling efektif secara marginal</strong>. Dashboard analitik preskriptif ini merumuskan rekomendasi realokasi anggaran, dengan prioritas evaluasi di <strong>${insightRegion}</strong> guna memberikan dampak penurunan stunting terbesar.`;
 };

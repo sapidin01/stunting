@@ -71,10 +71,19 @@ window.switchTab = function(targetId) {
 
     document.getElementById('header-title').innerText = titles[targetId];
 
+    // [BARU] Tutup sidebar otomatis di mode mobile setelah klik tab
+    if (window.innerWidth < 768) {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('mobile-overlay').classList.add('hidden');
+    }
+
     setTimeout(() => {
         if (targetId === 'modul-1' && window.hcMapM1) window.hcMapM1.reflow();
         if (targetId === 'modul-2' && window.hcScatter) window.hcScatter.reflow(); 
         if (targetId === 'modul-3' && window.hcMapM3) window.hcMapM3.reflow();
-        if (targetId === 'modul-4' && window.hcTimelag) window.hcTimelag.reflow();
+        if (targetId === 'modul-4' && window.hcHeatmap) {
+             window.hcHeatmap.reflow();
+             window.hcTornado.reflow();
+        }
     }, 50);
 };

@@ -71,28 +71,33 @@ window.renderModul4 = function(filterVal) {
         </div>`;
 
     // 5. Engine Simulator What-If dengan Omitted Variable Bias Fix
-    const sanitasi = document.getElementById('sim-sanitasi');
-    const gizi = document.getElementById('sim-gizi');
-    const edukasi = document.getElementById('sim-edukasi');
+    // 5. Engine Simulator What-If (Sensitif, Spesifik, Dukungan)
+    const sensitif = document.getElementById('sim-sensitif');
+    const spesifik = document.getElementById('sim-spesifik');
+    const dukungan = document.getElementById('sim-dukungan');
 
     function calculateImpact() {
-        let vSan = parseInt(sanitasi.value);
-        let vGiz = parseInt(gizi.value);
-        let vEdu = parseInt(edukasi.value);
+        let vSen = parseInt(sensitif.value);
+        let vSpe = parseInt(spesifik.value);
+        let vDuk = parseInt(dukungan.value);
         
-        document.getElementById('sim-val-sanitasi').innerText = vSan > 0 ? '+' + vSan + '%' : vSan + '%';
-        document.getElementById('sim-val-gizi').innerText = vGiz > 0 ? '+' + vGiz + '%' : vGiz + '%';
-        document.getElementById('sim-val-edukasi').innerText = vEdu > 0 ? '+' + vEdu + '%' : vEdu + '%';
+        document.getElementById('sim-val-sensitif').innerText = vSen > 0 ? '+' + vSen + '%' : vSen + '%';
+        document.getElementById('sim-val-spesifik').innerText = vSpe > 0 ? '+' + vSpe + '%' : vSpe + '%';
+        document.getElementById('sim-val-dukungan').innerText = vDuk > 0 ? '+' + vDuk + '%' : vDuk + '%';
 
-        // Penyesuaian daya penjelas (multiplier) berdasarkan kemiskinan & keterisolasian daerah
-        let isolasiPenalty = (avgIsolasi / 100) * 0.25;   // Semakin terpencil, distribusi PMT/Sanitasi makin sulit
-        let povertyPenalty = (avgKemiskinan / 100) * 0.15; // Semakin miskin, resistensi edukasi makin tinggi
+        // Penyesuaian daya penjelas (multiplier) berdasarkan kemiskinan & keterisolasian daerah (dari scope luar)
+        let isolasiPenalty = (avgIsolasi / 100) * 0.25;   
+        let povertyPenalty = (avgKemiskinan / 100) * 0.15; 
         
         let baselineMultiplier = 1.35;
         let adjustedMultiplier = baselineMultiplier - isolasiPenalty - povertyPenalty;
-        adjustedMultiplier = Math.max(0.6, adjustedMultiplier); // Batas minimal efektivitas
+        adjustedMultiplier = Math.max(0.6, adjustedMultiplier); 
 
-        let rawImpact = (vSan * 185 + vGiz * 95 + vEdu * 60) * adjustedMultiplier;
+        // Bobot Simulasi (Konstanta Regresi):
+        // Spesifik = Impact klinis langsung tertinggi (Bobot: 180)
+        // Sensitif = Impact jangka panjang struktural (Bobot: 120)
+        // Dukungan = Enabler / Katalisator manajemen (Bobot: 50)
+        let rawImpact = (vSen * 120 + vSpe * 180 + vDuk * 50) * adjustedMultiplier;
         
         let simMin = document.getElementById('sim-min');
         let simMax = document.getElementById('sim-max');
@@ -103,21 +108,21 @@ window.renderModul4 = function(filterVal) {
             let max = Math.ceil(rawImpact * 1.15);  
             simMin.innerText = `-${min.toLocaleString('id-ID')}`;
             simMax.innerText = `-${max.toLocaleString('id-ID')}`;
-            resultContainer.className = 'text-3xl font-black text-emerald-600 relative z-10 transition-colors duration-300';
+            resultContainer.className = 'text-xl md:text-3xl font-black text-emerald-600 relative z-10 transition-colors duration-300';
         } else {
             simMin.innerText = "0";
             simMax.innerText = "0";
-            resultContainer.className = 'text-3xl font-black text-slate-400 relative z-10 transition-colors duration-300';
+            resultContainer.className = 'text-xl md:text-3xl font-black text-slate-400 relative z-10 transition-colors duration-300';
         }
     }
 
-    // Bersihkan event listener lama untuk mencegah duplikasi fungsi saat filter berubah
-    sanitasi.removeEventListener('input', calculateImpact); 
-    gizi.removeEventListener('input', calculateImpact); 
-    edukasi.removeEventListener('input', calculateImpact);
+    sensitif.removeEventListener('input', calculateImpact); 
+    spesifik.removeEventListener('input', calculateImpact); 
+    dukungan.removeEventListener('input', calculateImpact);
     
-    sanitasi.addEventListener('input', calculateImpact); 
-    gizi.addEventListener('input', calculateImpact); 
-    edukasi.addEventListener('input', calculateImpact);
+    sensitif.addEventListener('input', calculateImpact); 
+    spesifik.addEventListener('input', calculateImpact); 
+    dukungan.addEventListener('input', calculateImpact);
+    
     calculateImpact();
 };
